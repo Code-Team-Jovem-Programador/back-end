@@ -38,7 +38,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
-    'api',
+    'api', 
+    'drf_yasg',
 ]
 
 MIDDLEWARE = [
@@ -52,6 +53,22 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'config.urls'
+
+
+SWAGGER_SETTINGS = {'SECURITY_DEFINITIONS': {
+    'Bearer': {
+        'type': 'apiKey',
+        'name': 'Authorization',
+        'in': 'header'
+    }
+},
+'SECURITY_REQUIREMENTS': [
+    {
+    'Bearer': []
+    }
+],
+    'USE_SESSION_AUTH': False,
+}
 
 TEMPLATES = [
     {
