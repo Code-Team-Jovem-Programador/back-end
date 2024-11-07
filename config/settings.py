@@ -104,7 +104,7 @@ WSGI_APPLICATION = 'config.wsgi.application'
 #     }
 # }
 
-DB_URL = config('DB_URL', default=os.environ.get('DB_URL', None))
+DB_URL = config('DB_URL', default=os.getenv('DB_URL', None))
 print("DB_URL: ",DB_URL)
 DATABASES = {
     'default': dj_database_url.config(
