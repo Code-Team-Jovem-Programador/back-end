@@ -18,7 +18,6 @@ from . import serializers
                      
 @api_view(['GET', 'POST'])
 def get_produtos(request):
-
     if request.method == 'GET':
         produtos = models.Produto.objects.all()
         serializer = serializers.ProdutoSerializer(produtos, many=True)
