@@ -1,7 +1,14 @@
 from pathlib import Path
 from decouple import config
-import dj_database_url  
 import os
+import dj_database_url
+
+DB_URL = config('DB_URL', default=os.environ.get('DB_URL', None))
+DATABASES = {
+    'default': dj_database_url.config(
+        default=DB_URL
+    )
+}
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -31,9 +38,11 @@ INSTALLED_APPS = [
     'rest_framework',
     'api', 
     'drf_yasg',
+    'corsheaders',
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -42,6 +51,12 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+CORS_ALLOWED_ORIGINS = [
+    'http://localhost:5173',
+]
+
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 ROOT_URLCONF = 'config.urls'
 
