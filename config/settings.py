@@ -3,13 +3,6 @@ from decouple import config
 import os
 import dj_database_url
 
-# DB_URL = config('DB_URL', default=os.environ.get('DB_URL', None))
-# DATABASES = {
-#     'default': dj_database_url.config(
-#         default=DB_URL
-#     )
-# }
-
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -97,15 +90,8 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': BASE_DIR / 'db.sqlite3',
-#     }
-# }
 
 DB_URL = config('DB_URL', default=os.getenv('DB_URL', None))
-print("DB_URL: ",DB_URL)
 DATABASES = {
     'default': dj_database_url.config(
             default=DB_URL
