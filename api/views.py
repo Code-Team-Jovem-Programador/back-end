@@ -6,6 +6,7 @@ from . import models
 from drf_yasg.utils import swagger_auto_schema
 from . import serializers
 from drf_yasg import openapi
+from rest_framework.pagination import PageNumberPagination
 
 # Create your views here.
 @swagger_auto_schema(
@@ -85,3 +86,31 @@ def get_produtos_id(request, id):
     elif request.method == 'DELETE':
         produto.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+    
+class ProdutoPagination(PageNumberPagination):
+    page_size = 10  
+    page_size_query_param = 'page_size' 
+    max_page_size = 100  
+
+@swagger_auto_schema(
+    methods=['GET'],
+    operation_description="Lista todos os produtos com a possibilidade de filtrar por categoria e paginar os resultados.",
+    manual_parameters=[
+        openapi.Parameter('categoria', openapi.IN_QUERY, description="Filtrar produtos por categoria", type=openapi.TYPE_STRING),
+        openapi.Parameter('page', openapi.IN_QUERY, description="Número da página", type=openapi.TYPE_INTEGER, default=1),
+        openapi.Parameter('page_size', openapi.IN_QUERY, description="Número de itens por página", type=openapi.TYPE_INTEGER, default=10)
+    ],
+    tags=['Produtos']
+)    
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def listar_produtos(request):
+    categoria = request.query_params.get('categoria', None)
+    if categoria:
+        produtos = models.Produto.objects.filter(categoria__icontains=categoria)
+    else:
+        produtos = models.Produto.objects.all()
+    paginator = ProdutoPagination()
+    paginated_produtos = paginator.paginate_queryset(produtos, request)
+    serializer = serializers.ProdutoSerializer(paginated_produtos, many=True)
+    return paginator.get_paginated_response(serializer.data)
