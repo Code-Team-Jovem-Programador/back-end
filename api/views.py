@@ -1,3 +1,4 @@
+import csv
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
@@ -120,7 +121,7 @@ def listar_produtos(request):
     return paginator.get_paginated_response(serializer.data)
     
 @api_view(['GET'])
-def produtos_report_xlsx(request):
+def produtos_export_xlsx(request):
     produtos = models.Produto.objects.all()
 
     workbook = Workbook()
@@ -147,7 +148,7 @@ def produtos_report_xlsx(request):
     return response
     
 @api_view(['GET'])
-def produtos_report_csv(request):
+def produtos_export_csv(request):
     produtos = models.Produto.objects.all()
 
     response = HttpResponse(content_type='text/csv')
@@ -167,7 +168,7 @@ def produtos_report_csv(request):
     return response
 
 @api_view(['GET'])
-def produtos_report_pdf(request):
+def produtos_export_pdf(request):
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = 'attachment; filename="Produtos.pdf"'
 
