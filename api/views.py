@@ -120,3 +120,4 @@ def produtos_report_pdf(request):
     
     pdf_canvas.save()
     return response
+    
