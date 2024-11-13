@@ -87,37 +87,36 @@ def produtos_report_pdf(request):
     response['Content-Disposition'] = 'attachment; filename="Produtos.pdf"'
 
     pdf_canvas = canvas.Canvas(response, pagesize=landscape(A4))
-    width, height = A4
+    width, height = landscape(A4)
 
-    pdf_canvas.setFont("Helvetica-Bold", 14)
+    pdf_canvas.setFont("Helvetica-Bold", 12)
     pdf_canvas.drawString(100, height - 50, "Relatório de Produtos")
 
     pdf_canvas.setFont("Helvetica-Bold", 8)
-    pdf_canvas.drawString(30, height - 70, "ID")
-    pdf_canvas.drawString(100, height - 80, "PRODUTO")
-    pdf_canvas.drawString(200, height - 100, "DESCRICAO")
-    pdf_canvas.drawString(300, height - 80, "QUANTIDADE")
-    pdf_canvas.drawString(350, height - 50, "PRECO")
-    pdf_canvas.drawString(400, height - 100, "CATEGORIA")
+    pdf_canvas.drawString(30, height - 60, "ID")
+    pdf_canvas.drawString(200, height - 60, "PRODUTO")
+    pdf_canvas.drawString(350, height - 60, "DESCRICAO")
+    pdf_canvas.drawString(570, height - 60, "QUANTIDADE")
+    pdf_canvas.drawString(630, height - 60, "PRECO")
+    pdf_canvas.drawString(700, height - 60, "CATEGORIA")
 
-    y_position = height - 100  
+    y_position = height - 80  
     produtos = models.Produto.objects.all()
     
     for produto in produtos:
-        pdf_canvas.setFont("Helvetica", 10)
-        pdf_canvas.drawString(30, y_position, str(produto.id))
-        pdf_canvas.drawString(100, y_position, produto.nome)
-        pdf_canvas.drawString(200, y_position, produto.descricao)
-        pdf_canvas.drawString(300, y_position, f"{produto.quantidades}")
-        pdf_canvas.drawString(350, y_position, f"R${produto.preco:.2f}")
-        pdf_canvas.drawString(400, y_position, produto.categoria)
-        
-        y_position -= 20
-        
         if y_position < 40:
             pdf_canvas.showPage()
-            y_position = height - 40
+            y_position = height - 40 
 
+        pdf_canvas.setFont("Helvetica", 8)
+        pdf_canvas.drawString(30, y_position, str(produto.id))
+        pdf_canvas.drawString(200, y_position, produto.nome[:15])
+        pdf_canvas.drawString(350, y_position, produto.descricao[:25])
+        pdf_canvas.drawString(570, y_position, str(produto.quantidades))
+        pdf_canvas.drawString(630, y_position, f"R${produto.preco:.2f}")
+        pdf_canvas.drawString(700, y_position, produto.categoria[:15])
+
+        y_position -= 20
+    
     pdf_canvas.save()
-
     return response
