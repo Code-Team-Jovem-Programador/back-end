@@ -50,6 +50,7 @@ MIDDLEWARE = [
 
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:5173',
+    'https://gerenciador-codeteam.onrender.com/'
 ]
 
 REST_FRAMEWORK = { 
