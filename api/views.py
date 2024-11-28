@@ -13,7 +13,93 @@ from . import serializers
 from drf_yasg import openapi
 from rest_framework.pagination import PageNumberPagination
 
+from django.contrib.auth.tokens import default_token_generator
+from django.utils.http import urlsafe_base64_encode
+from django.utils.encoding import force_bytes
+from django.core.mail import send_mail
+from django.urls import reverse
+
+from .serializers import UserSerializer
+
+from django.utils.http import urlsafe_base64_decode
+from django.shortcuts import get_object_or_404
+from django.contrib.auth.models import User
+
 # Create your views here.
+
+# Parte dedicada ao Usuário -----------------------------------------------------------------------------------
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def register(request):
+    serializer = UserSerializer(data=request.data)
+    if serializer.is_valid():
+        user = serializer.save()
+        send_activation_email(user, request)
+        return Response(
+            {"message": "Usuário registrado. Verifique seu e-mail para ativar a conta."},
+            status=status.HTTP_201_CREATED
+        )
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+def send_activation_email(user, request):
+    token = default_token_generator.make_token(user)
+    uid = urlsafe_base64_encode(force_bytes(user.pk))
+    activation_link = request.build_absolute_uri(
+        reverse('activate', kwargs={'uidb64': uid, 'token': token})
+    )
+
+    # Verifique se o link de ativação está correto
+    print(f"Link de ativação: {activation_link}")
+
+    subject = "Confirme seu cadastro"
+    message = f"Olá {user.username}, clique no link para ativar sua conta: {activation_link}"
+    
+    try:
+        send_mail(subject, message, 'code.team.senac@gmail.com', [user.email])
+        print(f"E-mail enviado para {user.email}")
+    except Exception as e:
+        print(f"Erro ao enviar e-mail: {e}")
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def activate_account(request, uidb64, token):
+    try:
+        uid = urlsafe_base64_decode(uidb64).decode()
+        user = get_object_or_404(User, pk=uid)
+    except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+        return Response({"error": "Link inválido."}, status=status.HTTP_400_BAD_REQUEST)
+
+    if default_token_generator.check_token(user, token):
+        user.is_active = True
+        user.save()
+        return Response({"message": "Conta ativada com sucesso!"}, status=status.HTTP_200_OK)
+    else:
+        return Response({"error": "Token inválido ou expirado."}, status=status.HTTP_400_BAD_REQUEST)
+
+@swagger_auto_schema(
+    methods=['POST'],
+    request_body= serializers.UserSerializer,
+    tags=['Cadastro'],
+)
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+
+def register(request):
+    serializer = UserSerializer(data=request.data)
+    if serializer.is_valid():
+        user = serializer.save()
+        send_activation_email(user, request)
+        return Response(
+            {"message": "Usuário registrado. Verifique seu e-mail para ativar a conta."},
+            status=status.HTTP_201_CREATED
+        )
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+# Parte dedicada a Produtos ---------------------------------------------------------
+
 @swagger_auto_schema(
     methods=['POST'],
     request_body=serializers.ProdutoSerializer,
@@ -39,23 +125,6 @@ def get_produtos(request):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
-@swagger_auto_schema(
-    methods=['POST'],
-    request_body= serializers.UserSerializer,
-    tags=['Cadastro'],
-)
-
-@api_view(['POST'])
-@permission_classes([AllowAny])
-
-def register(request):
-    serializer = serializers.UserSerializer(data=request.data)
-    if serializer.is_valid():
-        serializer.save()
-        return Response({"username": serializer.data['username']}, status=status.HTTP_201_CREATED)
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
 id_param = openapi.Parameter(
     'id', openapi.IN_PATH, description="UUID do produto", type=openapi.TYPE_STRING, format='uuid'
 )
@@ -119,7 +188,9 @@ def listar_produtos(request):
     paginated_produtos = paginator.paginate_queryset(produtos, request)
     serializer = serializers.ProdutoSerializer(paginated_produtos, many=True)
     return paginator.get_paginated_response(serializer.data)
-    
+
+# Parte dedicada a extração de dados via banco de dados ------------------------------------------------------------------------------------------------
+#     
 @api_view(['GET'])
 def produtos_export_xlsx(request):
     produtos = models.Produto.objects.all()
