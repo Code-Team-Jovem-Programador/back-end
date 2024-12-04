@@ -19,7 +19,7 @@ from django.utils.encoding import force_bytes
 from django.core.mail import send_mail
 from django.urls import reverse
 
-from .serializers import UserSerializer
+from .serializers import UserSerializer, PasswordChangeSerializer
 
 from django.utils.http import urlsafe_base64_decode
 from django.shortcuts import get_object_or_404
@@ -94,6 +94,24 @@ def register(request):
             {"message": "Usuário registrado. Verifique seu e-mail para ativar a conta."},
             status=status.HTTP_201_CREATED
         )
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+@swagger_auto_schema(
+    methods=['POST'],
+    request_body= serializers.PasswordChangeSerializer,
+    tags=['Mudar Senha'],
+)
+
+@api_view(['POST'])
+@permission_classes ([IsAuthenticated])
+
+def changePassword(request):
+    serializer = PasswordChangeSerializer(data=request.data, context={'request': request})
+    if serializer.is_valid():
+        user = request.user
+        user.set_password(serializer.validated_data['new_password'])
+        user.save()
+        return Response({"message": "Senha alterada com sucesso!"}, status=status.HTTP_200_OK)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
