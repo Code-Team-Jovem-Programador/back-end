@@ -108,13 +108,13 @@ TEMPLATES = [
 WSGI_APPLICATION = 'config.wsgi.application'
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'  # Para Gmail, por exemplo
+EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_USE_SSL = False
-EMAIL_HOST_USER = 'code.team.senac@gmail.com'
-EMAIL_HOST_PASSWORD = 'qgfb xkfi dxmk tmhc'
-DEFAULT_FROM_EMAIL = 'code.team.senac@gmail.com'
+EMAIL_HOST_USER = config('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
+DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL')
 
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
