@@ -19,11 +19,13 @@ from django.utils.encoding import force_bytes
 from django.core.mail import send_mail
 from django.urls import reverse
 
-from .serializers import UserSerializer, PasswordChangeSerializer
+from .serializers import UserSerializer, PasswordChangeSerializer, PasswordResetSerializer,send_password_reset_email
 
 from django.utils.http import urlsafe_base64_decode
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.models import User
+
+from django.contrib.auth.tokens import PasswordResetTokenGenerator
 
 # Create your views here.
 
@@ -96,6 +98,8 @@ def register(request):
         )
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+# Troca de senha ------------------------------------------------------------------------
+
 @swagger_auto_schema(
     methods=['POST'],
     request_body= serializers.PasswordChangeSerializer,
@@ -114,6 +118,37 @@ def changePassword(request):
         return Response({"message": "Senha alterada com sucesso!"}, status=status.HTTP_200_OK)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+# Reset de senha --------------------------------------------------------------------
+
+@api_view(['POST'])
+def passwordReset(self, request):
+    serializer = PasswordResetSerializer(data=request.data)
+    if serializer.is_valid():
+        email = serializer.validated_data['email']
+        user = User.objects.get(email=email)
+        send_password_reset_email(user, request)
+        return Response({"message": "E-mail de redefinição de senha enviado."}, status=status.HTTP_200_OK)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['POST'])
+def passwordResetConfirmView( request, uidb64, token):
+    try:
+        user_id = urlsafe_base64_decode(uidb64).decode()
+        user = User.objects.get(pk=user_id)
+    except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+        return Response({"error": "Link inválido."}, status=status.HTTP_400_BAD_REQUEST)
+
+    if PasswordResetTokenGenerator().check_token(user, token):
+        new_password = request.data.get('new_password')
+        confirm_password = request.data.get('confirm_password')
+        if new_password != confirm_password:
+            return Response({"error": "As senhas não correspondem."}, status=status.HTTP_400_BAD_REQUEST)
+
+        user.set_password(new_password)
+        user.save()
+        return Response({"message": "Senha redefinida com sucesso!"}, status=status.HTTP_200_OK)
+    else:
+        return Response({"error": "Token inválido ou expirado."}, status=status.HTTP_400_BAD_REQUEST)
 
 # Parte dedicada a Produtos ---------------------------------------------------------
 
@@ -191,7 +226,7 @@ class ProdutoPagination(PageNumberPagination):
         openapi.Parameter('page', openapi.IN_QUERY, description="Número da página", type=openapi.TYPE_INTEGER, default=1),
         openapi.Parameter('page_size', openapi.IN_QUERY, description="Número de itens por página", type=openapi.TYPE_INTEGER, default=10)
     ],
-    tags=['Produtos']
+    tags=['Lista de Produtos']
 )    
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])

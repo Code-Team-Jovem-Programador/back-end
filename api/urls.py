@@ -1,6 +1,6 @@
 from django.urls import path
 from . import views
-from .views import register, activate_account, changePassword
+from .views import register, activate_account, changePassword, passwordReset,passwordResetConfirmView
 
 urlpatterns = [
     path('produtos/', views.get_produtos),
@@ -13,4 +13,6 @@ urlpatterns = [
     path('register/', register, name='register'),
     path('activate/<str:uidb64>/<str:token>/', activate_account, name='activate'),
     path('change-password/', changePassword, name='change_password'),
+    path('password-reset/', passwordResetConfirmView, name='password-reset'),
+    path('password-reset-confirm/<uidb64>/<token>/', passwordResetConfirmView, name='password-reset-confirm'),
 ]
