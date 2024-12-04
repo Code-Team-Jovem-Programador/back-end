@@ -120,8 +120,14 @@ def changePassword(request):
 
 # Reset de senha --------------------------------------------------------------------
 
+@swagger_auto_schema(
+    methods=['POST'],
+    request_body= serializers.PasswordResetSerializer,
+    tags=['Reset Senha'],
+)
+
 @api_view(['POST'])
-def passwordReset(self, request):
+def passwordReset(request):
     serializer = PasswordResetSerializer(data=request.data)
     if serializer.is_valid():
         email = serializer.validated_data['email']
@@ -131,7 +137,7 @@ def passwordReset(self, request):
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['POST'])
-def passwordResetConfirmView( request, uidb64, token):
+def passwordResetConfirmView(request, uidb64, token):
     try:
         user_id = urlsafe_base64_decode(uidb64).decode()
         user = User.objects.get(pk=user_id)
