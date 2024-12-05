@@ -48,6 +48,7 @@ class PasswordChangeSerializer(serializers.Serializer):
             raise serializers.ValidationError("A senha antiga está incorreta.")
         return value
     
+
 class PasswordResetSerializer(serializers.Serializer):
     email = serializers.EmailField()
 
@@ -56,12 +57,3 @@ class PasswordResetSerializer(serializers.Serializer):
             raise serializers.ValidationError("Nenhum usuário encontrado com este e-mail.")
         return value
     
-def send_password_reset_email(user, request):
-    token_generator = PasswordResetTokenGenerator()
-    token = token_generator.make_token(user)
-    uid = urlsafe_base64_encode(force_bytes(user.pk))
-    reset_link = request.build_absolute_uri(reverse('password-reset-confirm', kwargs={'uidb64': uid, 'token': token}))
-
-    subject = "Redefinição de Senha"
-    message = f"Olá {user.username}, clique no link para redefinir sua senha: {reset_link}"
-    send_mail(subject, message, 'code.team.senac@gmail.com', [user.email])

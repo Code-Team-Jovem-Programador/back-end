@@ -19,7 +19,7 @@ from django.utils.encoding import force_bytes
 from django.core.mail import send_mail
 from django.urls import reverse
 
-from .serializers import UserSerializer, PasswordChangeSerializer, PasswordResetSerializer,send_password_reset_email
+from .serializers import UserSerializer, PasswordChangeSerializer, PasswordResetSerializer
 
 from django.utils.http import urlsafe_base64_decode
 from django.shortcuts import get_object_or_404
@@ -120,13 +120,24 @@ def changePassword(request):
 
 # Reset de senha --------------------------------------------------------------------
 
+def send_password_reset_email(user, request):
+    token_generator = PasswordResetTokenGenerator()
+    token = token_generator.make_token(user)
+    uid = urlsafe_base64_encode(force_bytes(user.pk))
+    reset_link = request.build_absolute_uri(reverse('password-reset-confirm', kwargs={'uidb64': uid, 'token': token}))
+
+    subject = "Redefinição de Senha"
+    message = f"Olá {user.username}, clique no link para redefinir sua senha: {reset_link}"
+    send_mail(subject, message, 'code.team.senac@gmail.com', [user.email])
+
 @swagger_auto_schema(
-    methods=['POST'],
-    request_body= serializers.PasswordResetSerializer,
-    tags=['Reset Senha'],
+    method='post',
+    request_body=PasswordResetSerializer,
+    tags=['password-reset'],
 )
 
 @api_view(['POST'])
+@permission_classes([AllowAny])
 def passwordReset(request):
     serializer = PasswordResetSerializer(data=request.data)
     if serializer.is_valid():
@@ -137,6 +148,7 @@ def passwordReset(request):
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['POST'])
+@permission_classes([AllowAny])
 def passwordResetConfirmView(request, uidb64, token):
     try:
         user_id = urlsafe_base64_decode(uidb64).decode()

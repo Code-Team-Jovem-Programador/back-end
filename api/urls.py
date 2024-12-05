@@ -13,6 +13,6 @@ urlpatterns = [
     path('register/', register, name='register'),
     path('activate/<str:uidb64>/<str:token>/', activate_account, name='activate'),
     path('change-password/', changePassword, name='change_password'),
-    path('password-reset/', passwordResetConfirmView, name='password-reset'),
+    path('password-reset/', passwordReset, name='password-reset'),
     path('password-reset-confirm/<uidb64>/<token>/', passwordResetConfirmView, name='password-reset-confirm'),
 ]
