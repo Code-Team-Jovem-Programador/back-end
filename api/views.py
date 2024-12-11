@@ -221,15 +221,17 @@ def get_produtos_id(request, id):
     if request.method == 'GET':
         serializer = serializers.ProdutoSerializer(produto)
         return Response(serializer.data)
+
     elif request.method == 'PUT':
         serializer = serializers.ProdutoSerializer(produto, data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
     elif request.method == 'DELETE':
         produto.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response({"message": "Produto deletado com sucesso."}, status=status.HTTP_204_NO_CONTENT)
     
 class ProdutoPagination(PageNumberPagination):
     page_size = 10  
