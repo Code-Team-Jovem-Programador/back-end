@@ -7,13 +7,11 @@ import dj_database_url
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-2b+q(r^euov_-u$$kq6@33-*5=00mzq=txl!f0&pm=8@rdg%7t'
-
 
 
 # SECURITY WARNING: don't run with debug turned on in production!
@@ -49,9 +47,13 @@ MIDDLEWARE = [
 ]
 
 CORS_ALLOWED_ORIGINS = [
+    "http://127.0.0.1:8000",
     'http://localhost:5173',
     'https://gerenciador-codeteam.onrender.com'
 ]
+
+MIDDLEWARE.insert(0, 'corsheaders.middleware.CorsMiddleware')
+CORS_ALLOW_ALL_ORIGINS = True  # Somente para desenvolvimento, use regras específicas em produção
 
 REST_FRAMEWORK = { 
     'DEFAULT_AUTHENTICATION_CLASSES': [
@@ -63,7 +65,7 @@ REST_FRAMEWORK = {
 }
 
 SIMPLE_JWT = { 
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=5),
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=100),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
     'ROTATE_REFRESH_TOKENS': False,
     'BLACKLIST_AFTER_ROTATION': True,

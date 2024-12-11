@@ -26,6 +26,7 @@ from django.shortcuts import get_object_or_404
 from django.contrib.auth.models import User
 
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
+import os
 
 # Create your views here.
 
@@ -47,10 +48,8 @@ def register(request):
 def send_activation_email(user, request):
     token = default_token_generator.make_token(user)
     uid = urlsafe_base64_encode(force_bytes(user.pk))
-    # activation_link = f'http://localhost:5173/activate?uidb64={uid}&token={token}'
-    activation_link = f'https://gerenciador-codeteam.onrender.com/activate?uidb64={uid}&token={token}'
-
-    # Verifique se o link de ativação está correto
+    link = config('ENV_LINK', default=os.getenv('ENV_LINK', None))
+    activation_link = f'{link}{uid}&token={token}'
     print(f"Link de ativação: {activation_link}")
 
     subject = "Confirme seu cadastro"
@@ -181,7 +180,7 @@ def passwordResetConfirmView(request, uidb64, token):
 )
                      
 @api_view(['GET', 'POST'])
-@permission_classes([IsAuthenticated])
+@permission_classes([AllowAny])
 
 def get_produtos(request):
     if request.method == 'GET':
@@ -211,7 +210,7 @@ id_param = openapi.Parameter(
     manual_parameters=[id_param],
 )
 @api_view(['GET', 'PUT', 'DELETE'])
-@permission_classes([IsAuthenticated])
+@permission_classes([AllowAny])
 def get_produtos_id(request, id):
     try:
         produto = models.Produto.objects.get(id=id)
@@ -249,7 +248,7 @@ class ProdutoPagination(PageNumberPagination):
     tags=['Lista de Produtos']
 )    
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
+@permission_classes([AllowAny])
 def listar_produtos(request):
     categoria = request.query_params.get('categoria', None)
     if categoria:
@@ -262,8 +261,9 @@ def listar_produtos(request):
     return paginator.get_paginated_response(serializer.data)
 
 # Parte dedicada a extração de dados via banco de dados ------------------------------------------------------------------------------------------------
-#     
+    
 @api_view(['GET'])
+@permission_classes([AllowAny])
 def produtos_export_xlsx(request):
     produtos = models.Produto.objects.all()
 
@@ -282,7 +282,7 @@ def produtos_export_xlsx(request):
                           produto.categoria])
         
     response = HttpResponse(
-        content_type='application/vnd.opexmlformats-officedocument.spreadsheetml.sheet'
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
     )
 
     response['Content-Disposition'] = 'attachment; filename="Produtos.xlsx"'
@@ -291,6 +291,7 @@ def produtos_export_xlsx(request):
     return response
     
 @api_view(['GET'])
+@permission_classes([AllowAny])
 def produtos_export_csv(request):
     produtos = models.Produto.objects.all()
 
@@ -311,6 +312,7 @@ def produtos_export_csv(request):
     return response
 
 @api_view(['GET'])
+@permission_classes([AllowAny])
 def produtos_export_pdf(request):
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = 'attachment; filename="Produtos.pdf"'
