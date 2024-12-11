@@ -26,6 +26,7 @@ from django.shortcuts import get_object_or_404
 from django.contrib.auth.models import User
 
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
+import os
 
 # Create your views here.
 
@@ -47,9 +48,8 @@ def register(request):
 def send_activation_email(user, request):
     token = default_token_generator.make_token(user)
     uid = urlsafe_base64_encode(force_bytes(user.pk))
-    activation_link = f'http://localhost:5173/activate?uidb64={uid}&token={token}'
-    #activation_link = f'https://gerenciador-codeteam.onrender.com/activate?uidb64={uid}&token={token}'
-
+    link = config('ENV_LINK', default=os.getenv('ENV_LINK', None))
+    activation_link = f'{link}{uid}&token={token}'
     print(f"Link de ativação: {activation_link}")
 
     subject = "Confirme seu cadastro"
