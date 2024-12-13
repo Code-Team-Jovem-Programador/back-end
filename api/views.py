@@ -48,7 +48,7 @@ def register(request):
 def send_activation_email(user, request):
     token = default_token_generator.make_token(user)
     uid = urlsafe_base64_encode(force_bytes(user.pk))
-    link = config('ENV_LINK', default=os.getenv('ENV_LINK', None))
+    link = os.getenv('ENV_LINK', None)
     activation_link = f'{link}{uid}&token={token}'
     print(f"Link de ativação: {activation_link}")
 
